@@ -115,6 +115,9 @@ impl TryFrom<message::Message> for Vec<Message> {
     fn try_from(message: message::Message) -> Result<Self, Self::Error> {
         match message {
             message::Message::User { content } => {
+                dbg!("rig messages: ");
+                dbg!(&content);
+
                 let mut tool_result_messages = Vec::new();
                 let mut other_messages = Vec::new();
 
@@ -125,7 +128,15 @@ impl TryFrom<message::Message> for Vec<Message> {
                             call_id,
                             content: tool_content,
                         }) => {
-                            let call_id_key = call_id.unwrap_or_else(|| id.clone());
+                            let tool_call_id = match call_id {
+                                Some(call_id) => call_id,
+                                None => {
+                                    return Err(message::MessageError::ConversionError(
+                                        "Tool call ID is required for Mistral via Rig".to_string(),
+                                    ));
+                                }
+                            };
+
                             let content_text = tool_content
                                 .into_iter()
                                 .find_map(|content_item| match content_item {
@@ -135,18 +146,25 @@ impl TryFrom<message::Message> for Vec<Message> {
                                 .unwrap_or_default();
                             tool_result_messages.push(Message::Tool {
                                 name: id,
+                                tool_call_id,
                                 content: content_text,
-                                tool_call_id: call_id_key,
                             });
                         }
                         message::UserContent::Text(message::Text { text }) => {
                             other_messages.push(Message::User { content: text });
                         }
-                        _ => {}
+                        _ => {
+                            return Err(message::MessageError::ConversionError(
+                                "Only text tool results are currently supported on Mistral via Rig"
+                                    .to_string(),
+                            ));
+                        }
                     }
                 }
 
                 tool_result_messages.append(&mut other_messages);
+                dbg!("mistral messages: ");
+                dbg!(&tool_result_messages);
                 Ok(tool_result_messages)
             }
             message::Message::Assistant { content, .. } => {
