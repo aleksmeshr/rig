@@ -129,7 +129,7 @@ impl TryFrom<message::Message> for Vec<Message> {
                                 Some(call_id) => call_id,
                                 None => {
                                     return Err(message::MessageError::ConversionError(
-                                        "Tool call ID is required for Mistral via Rig".to_string(),
+                                        "ToolResult.call_id is required for Mistral and must be set to the tool_call.id".into(),
                                     ));
                                 }
                             };
@@ -152,8 +152,7 @@ impl TryFrom<message::Message> for Vec<Message> {
                         }
                         _ => {
                             return Err(message::MessageError::ConversionError(
-                                "Only text tool results are currently supported on Mistral via Rig"
-                                    .to_string(),
+                                "Only text tool results are currently supported for Mistral".into(),
                             ));
                         }
                     }
