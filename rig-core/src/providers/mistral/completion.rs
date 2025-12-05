@@ -115,8 +115,7 @@ impl TryFrom<message::Message> for Vec<Message> {
     fn try_from(message: message::Message) -> Result<Self, Self::Error> {
         match message {
             message::Message::User { content } => {
-                dbg!("rig messages: ");
-                dbg!(&content);
+                println!("rig messages: {:?}", content);
 
                 let mut tool_result_messages = Vec::new();
                 let mut other_messages = Vec::new();
@@ -163,8 +162,7 @@ impl TryFrom<message::Message> for Vec<Message> {
                 }
 
                 tool_result_messages.append(&mut other_messages);
-                dbg!("mistral messages: ");
-                dbg!(&tool_result_messages);
+                println!("mistral messages: {:?}", tool_result_messages);
                 Ok(tool_result_messages)
             }
             message::Message::Assistant { content, .. } => {
@@ -385,7 +383,8 @@ impl TryFrom<(&str, CompletionRequest)> for MistralCompletionRequest {
             .map(crate::providers::openai::completion::ToolChoice::try_from)
             .transpose()?;
 
-        dbg!(&full_history);
+        println!("History in rig format: {:?}", req.chat_history);
+        println!("History in mistral format: {:?}", full_history);
 
         Ok(Self {
             model: model.to_string(),
