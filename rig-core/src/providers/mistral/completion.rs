@@ -367,6 +367,8 @@ impl TryFrom<(&str, CompletionRequest)> for MistralCompletionRequest {
             .map(crate::providers::openai::completion::ToolChoice::try_from)
             .transpose()?;
 
+        dbg!(&full_history);
+
         Ok(Self {
             model: model.to_string(),
             messages: full_history,
