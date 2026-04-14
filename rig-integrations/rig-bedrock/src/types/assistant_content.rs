@@ -1,9 +1,8 @@
 use aws_sdk_bedrockruntime::types as aws_bedrock;
 
 use rig::{
-    OneOrMany,
     completion::CompletionError,
-    message::{AssistantContent, Text, ToolCall, ToolFunction},
+    message::{AssistantContent, Text},
 };
 use serde::{Deserialize, Serialize};
 
@@ -51,20 +50,6 @@ impl TryFrom<AwsConverseOutput> for completion::CompletionResponse<AwsConverseOu
                 total_tokens: usage.total_tokens as u64,
             })
             .unwrap_or_default();
-
-        if let Some(tool_use) = choice.iter().find_map(|content| match content {
-            AssistantContent::ToolCall(tool_call) => Some(tool_call.to_owned()),
-            _ => None,
-        }) {
-            return Ok(completion::CompletionResponse {
-                choice: OneOrMany::one(AssistantContent::ToolCall(ToolCall::new(
-                    tool_use.id,
-                    ToolFunction::new(tool_use.function.name, tool_use.function.arguments),
-                ))),
-                usage,
-                raw_response: value,
-            });
-        }
 
         Ok(completion::CompletionResponse {
             choice,
